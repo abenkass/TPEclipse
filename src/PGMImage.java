@@ -79,19 +79,24 @@ public class PGMImage {
 		this.hauteur = hauteur;
 
 		levels = new int[largeur][hauteur];
-
-		for (int i=0; i<hauteur; i++){
-			currentLine = br.readLine();
-			if(currentLine == null){
-				throw new IOException("Wrong image height");
-			}
+		int i=0;
+		int j=0;
+		while((currentLine = br.readLine())!=null){
 			String[] line = currentLine.split(" ");
-			if(line.length != largeur){
-				throw new IOException("Wrong image width");
+			for(int k=0;k<line.length;k++){
+				if(j>=hauteur){
+					throw new IOException("wrong height");
+				}
+				levels[i][j] = Integer.parseInt(line[i]);
+				i++;
+				if(i>= largeur){
+					j++;
+					i=0;
+				}
 			}
-			for(int j=0; j<largeur;j++){
-				levels[j][i] = Integer.parseInt(line[j]);
-			}
+		}
+		if(j!=hauteur || i!=0){
+			throw new IOException("Wrong dimensions");
 		}
 	}
 	
@@ -161,4 +166,5 @@ public class PGMImage {
 			}
 		}
 	}
+	
 }
