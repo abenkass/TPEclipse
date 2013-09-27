@@ -1,5 +1,10 @@
-import java.io.*;
+/**
+ * 
+ * @author centralenantes
+ *
+ */
 
+import java.io.*;
 
 public class PGMImage {
 
@@ -36,7 +41,7 @@ public class PGMImage {
 	 * @param hauteur
 	 * @param largeur
 	 */
-	public PGMImage(int hauteur, int largeur) {
+	public PGMImage(int largeur, int hauteur) {
 		levels = new int[largeur][hauteur];
 		this.largeur = largeur;
 		this.hauteur = hauteur;
@@ -49,6 +54,18 @@ public class PGMImage {
 	 */
 	public PGMImage(String filePath) throws IOException{
 		getImageFromFilePath(filePath);
+	}
+	
+	public PGMImage(PGMImage image){
+		largeur = image.getLargeur();
+		hauteur = image.getHauteur();
+		levels = new int[largeur][hauteur];
+		int[][] imglevels = image.getLevels();
+		for (int i = 0; i < largeur; i++) {
+			for (int j = 0; j < hauteur; j++) {
+				levels[i][j] = imglevels[i][j];
+			}
+		}
 	}
 
 
@@ -69,8 +86,9 @@ public class PGMImage {
 
 		currentLine = br.readLine();
 		currentLine = br.readLine();
-		currentLine = br.readLine();
 		String[] dimension = currentLine.split(" ");
+		
+		currentLine = br.readLine();
 
 		int largeur = Integer.parseInt(dimension[0]);
 		int hauteur = Integer.parseInt(dimension[1]);
@@ -82,7 +100,7 @@ public class PGMImage {
 		int i=0;
 		int j=0;
 		while((currentLine = br.readLine())!=null){
-			String[] line = currentLine.split(" ");
+			String[] line = currentLine.split("	");
 			for(int k=0;k<line.length;k++){
 				if(j>=hauteur){
 					throw new IOException("wrong height");
@@ -100,6 +118,11 @@ public class PGMImage {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param filepath
+	 * @throws IOException
+	 */
 	public void saveImageasPGMFile(String filepath) throws IOException{
 		
 		File file = new File(filepath);
@@ -116,16 +139,28 @@ public class PGMImage {
 
 	@Override
 	public String toString() {
-		String result = "P2"+System.getProperty("line.separator")+largeur+" "+hauteur+System.getProperty("line.separator");
+		String result = "P2"+System.getProperty("line.separator")+largeur+" "+hauteur+System.getProperty("line.separator")+"255";
+		String line = "";
 		for(int i=0; i<hauteur; i++){
-			result+=System.getProperty("line.separator");
+			System.out.println(i);
 			for(int j=0; j<largeur; j++){
-				result+=((i==0) ? "" : " ") +levels[j][i];
+				String carac = String.valueOf(levels[j][i]);
+				if(line.length()+ carac.length() >=70){
+					result+= line + System.getProperty("line.separator");
+					line = carac;
+				}
+				else{
+					line += "	"+carac;
+				}
 			}
 		}
 		return result;	
 	}
 	
+	/**
+	 * 
+	 * @return PGMImage : histogramme
+	 */
 	public PGMImage generateHistogram(){
 		int[] tableau = new int[255];
 		
@@ -140,7 +175,7 @@ public class PGMImage {
 			}
 		}
 		
-		int[][] histo = new int[255][max];
+		int[][] histo = new int[255][max+1];
 		
 		for(int i=0;i<255;i++){
 			for(int j=0;j<tableau[i];j++){
@@ -154,9 +189,13 @@ public class PGMImage {
 		return histogram;
 	}
 	
+	/**
+	 * 
+	 * @param seuil
+	 */
 	public void level(int seuil){
 		for(int i=0;i<largeur;i++){
-			for(int j=0;j<hauteur;i++){
+			for(int j=0;j<hauteur;j++){
 				if(levels[i][j]>=seuil){
 					levels[i][j] = 255;
 				}
@@ -166,5 +205,26 @@ public class PGMImage {
 			}
 		}
 	}
+	
+	/**
+	 * 
+	 * @param image
+	 * @throws Exception
+	 */
+	public void difference(PGMImage image) throws Exception{
+		if(image.getHauteur() != this.getHauteur() || image.getLargeur()!= this.getLargeur()){
+			throw new Exception("Wrong dimensions");
+		}
+		
+		int[][] imgLevels = image.getLevels();
+		
+		for (int i = 0; i < largeur; i++) {
+			for (int j = 0; j < hauteur; j++) {
+				levels[i][j] = Math.abs(levels[i][j] - imgLevels[i][j]);
+			}
+		}
+	}
+	
+	
 	
 }
